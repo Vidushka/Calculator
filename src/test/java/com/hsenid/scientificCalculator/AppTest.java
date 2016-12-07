@@ -1,4 +1,4 @@
-package con.hsenid.scientificCalculator;
+package com.hsenid.scientificCalculator;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
