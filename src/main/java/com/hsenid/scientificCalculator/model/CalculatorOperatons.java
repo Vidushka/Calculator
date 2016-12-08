@@ -1,7 +1,5 @@
 package com.hsenid.scientificCalculator.model;
 
-import javax.swing.*;
-import java.awt.*;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,6 +10,7 @@ import java.util.regex.Pattern;
 public class CalculatorOperatons {
     public double total = 0;
     public String val;
+    public double memory = 0;
 
     public String convertOperand(String input) {
         Pattern pattern = Pattern.compile("\\d+(\\.\\d*)?+$");
@@ -37,8 +36,8 @@ public class CalculatorOperatons {
         total /= Double.valueOf(operand);
     }
 
-    public void calculateSin(Double angel) {
-        total = Math.sin(angel);
+    public void calculateSin(Double angle) {
+        total = Math.sin(angle);
     }
 
     public void calculateCos(Double angel) {
@@ -113,10 +112,10 @@ public class CalculatorOperatons {
         }
     }*/
 
-    public int evaluate(String expression, int d) {
+    public double evaluate(String expression, int d) {
         expression = expression.replaceAll("x", String.valueOf(d));
         char[] tokens = expression.toCharArray();
-        Stack<Integer> values = new Stack<Integer>();
+        Stack<Double> values = new Stack<Double>();
         Stack<Character> ops = new Stack<Character>();
 
 
@@ -127,18 +126,25 @@ public class CalculatorOperatons {
                 StringBuffer sbuf = new StringBuffer();
                 while (i < tokens.length && tokens[i] >= '0' && tokens[i] <= '9')
                     sbuf.append(tokens[i++]);
-                values.push(Integer.parseInt(sbuf.toString()));
+                values.push(Double.parseDouble(sbuf.toString()));
             } else if (tokens[i] == '(')
                 ops.push(tokens[i]);
             else if (tokens[i] == ')') {
                 while (ops.peek() != '(')
                     values.push(applyOp(ops.pop(), values.pop(), values.pop()));
                 ops.pop();
-            } else if (tokens[i] == '+' || tokens[i] == '-' ||
-                    tokens[i] == '*' || tokens[i] == '/') {
-                while (!ops.empty() && hasPrecedence(tokens[i], ops.peek()))
-                    values.push(applyOp(ops.pop(), values.pop(), values.pop()));
-                ops.push(tokens[i]);
+            } else if (tokens[i] == '+' || tokens[i] == '-' || tokens[i] == '*' || tokens[i] == '/') {
+                if(tokens[i+1] >= '0' && tokens[i+1] <= '9'){
+                    StringBuffer collectChars = new StringBuffer();
+                    while (i < tokens.length && ((tokens[i] >= '0' && tokens[i] <= '9') || tokens[i] == '+' || tokens[i] == '-')) {
+                        collectChars.append(tokens[i++]);
+                    }
+                    values.push(Double.parseDouble(collectChars.toString()));
+                } else {
+                    while (!ops.empty() && hasPrecedence(tokens[i], ops.peek()))
+                        values.push(applyOp(ops.pop(), values.pop(), values.pop()));
+                    ops.push(tokens[i]);
+                }
             }
         }
         while (!ops.empty())
@@ -155,7 +161,7 @@ public class CalculatorOperatons {
             return true;
     }
 
-    public static int applyOp(char op, int b, int a) {
+    public static double applyOp(char op, double b, double a) {
         switch (op) {
             case '+':
                 return a + b;
@@ -171,20 +177,19 @@ public class CalculatorOperatons {
         return 0;
     }
 
-    /*public void plotExpression(String expression){
-        int x=-10;
-        int y = 0;
-
-        Graphics g = null;
-        Polygon p = new Polygon();
-        g.setColor(Color.blue);
-
-        while (-11<x && x<11) {
-            y = evaluate(expression,x);
-            p.addPoint(x,y);
-            x++;
+    public void memoryOperation(String operand, String operator){
+        if (memory == 0 && operator.equals("M+")) {
+            memory = Double.parseDouble(operand);
+        } else if (memory == 0 && operator.equals("M-")){
+            memory = -1 * Double.parseDouble(operand);
+        } else if(operator.equals("M+")){
+          memory += Double.parseDouble(operand);
+        } else if (operator.equals("M-")){
+            memory -= Double.parseDouble(operand);
+        } else if(operator.equals("clearM")){
+            memory = 0;
         }
-        g.drawPolyline(p.xpoints,p.ypoints,21);
-    }*/
+    }
+
 }
 
