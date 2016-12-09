@@ -1,5 +1,8 @@
 package com.hsenid.scientificCalculator.model;
 
+import javax.swing.*;
+import java.io.File;
+import java.io.PrintWriter;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,20 +23,31 @@ public class CalculatorOperatons {
         return output;
     }
 
-    public void add(String operand) {
-        total += Double.valueOf(operand);
+    public char convertOperator(String input) {
+        Pattern pattern = Pattern.compile("[-+*/](\\s\\d+(\\.\\d*)?+)?$");
+        Matcher match = pattern.matcher(input);
+        match.find();
+        String output = match.group();
+        return output.charAt(0);
     }
 
-    public void multiply(String operand) {
-        total *= Double.valueOf(operand);
-    }
-
-    public void subtract(String operand) {
-        total -= Double.valueOf(operand);
-    }
-
-    public void divide(String operand) {
-        total /= Double.valueOf(operand);
+    public void doBasicOperations(char operator, String operand) {
+        char opt = ' ';
+        if (operand.length() == 1) {
+            opt = operator;
+        } else if (operand.length() > 1) {
+            opt = convertOperator(operand);
+        }
+        operand = convertOperand(operand);
+        if (opt == '+') {
+            total += Double.valueOf(operand);
+        } else if (opt == '*') {
+            total *= Double.valueOf(operand);
+        } else if (opt == '-') {
+            total -= Double.valueOf(operand);
+        } else if (opt == '/') {
+            total /= Double.valueOf(operand);
+        }
     }
 
     public void calculateSin(Double angle) {
@@ -96,21 +110,48 @@ public class CalculatorOperatons {
         total = Math.pow(base, Double.parseDouble(operand));
     }
 
-    public void convertHexToDec(String operand) {
-        val = String.valueOf(Integer.parseInt(operand, 16));
-    }
-
-    public void convertDecToBin(String operand) {
-        val = Integer.toBinaryString(Integer.parseInt(operand));
-    }
-
-    /*public void evaluateExp(String expression) {
-        //String[] expressionArr = expression.split("(?<=[-+*//*])|(?=[-+*//*])");
-        String[] expressionArr = expression.split(".+\\\\(([0-9]+)\\\\).+");
-        for (int i = 0; i < expressionArr.length - 1; i++) {
-            System.out.println(expressionArr[i]);
+    public void baseConverter(String operator, String inputBase, String operand) {
+        if (operator.equals("toHex")) {
+            if (inputBase.equals("dec")) {
+                val = Integer.toHexString(Integer.parseInt(operand, 10));
+            } else if (inputBase.equals("oct")) {
+                val = Integer.toHexString(Integer.parseInt(operand, 8));
+            } else if (inputBase.equals("bin")) {
+                val = Integer.toHexString(Integer.parseInt(operand, 2));
+            }
+        } else if (operator.equals("toDec")) {
+            if (inputBase.equals("hex")) {
+                val = String.valueOf(Integer.parseInt(operand, 16));
+            } else if (inputBase.equals("oct")) {
+                val = String.valueOf(Integer.parseInt(operand, 8));
+            } else if (inputBase.equals("bin")) {
+                val = String.valueOf(Integer.parseInt(operand, 2));
+            }
+        } else if (operator.equals("toBin")) {
+            if (inputBase.equals("dec")) {
+                val = Integer.toBinaryString(Integer.parseInt(operand, 10));
+            } else if (inputBase.equals("oct")) {
+                val = Integer.toBinaryString(Integer.parseInt(operand, 8));
+            } else if (inputBase.equals("hex")) {
+                val = Integer.toBinaryString(Integer.parseInt(operand, 16));
+            }
+        } else if (operator.equals("toOct")) {
+            if (inputBase.equals("hex")) {
+                val = Integer.toOctalString(Integer.parseInt(operand, 16));
+            } else if (inputBase.equals("dec")) {
+                val = Integer.toOctalString(Integer.parseInt(operand, 10));
+            } else if (inputBase.equals("bin")) {
+                val = Integer.toOctalString(Integer.parseInt(operand, 2));
+            }
         }
-    }*/
+
+    }
+
+    public String getCurrentBase() {
+        String[] choices = {"hex", "dec", "oct", "bin"};
+        return JOptionPane.showInputDialog(null, "What is the base of the value you have entered?",
+                "Choose base...", JOptionPane.QUESTION_MESSAGE, null, choices, choices[0]).toString();
+    }
 
     public double evaluate(String expression, int d) {
         expression = expression.replaceAll("x", String.valueOf(d));
@@ -134,7 +175,7 @@ public class CalculatorOperatons {
                     values.push(applyOp(ops.pop(), values.pop(), values.pop()));
                 ops.pop();
             } else if (tokens[i] == '+' || tokens[i] == '-' || tokens[i] == '*' || tokens[i] == '/') {
-                if(tokens[i+1] >= '0' && tokens[i+1] <= '9'){
+                if (tokens[i + 1] >= '0' && tokens[i + 1] <= '9') {
                     StringBuffer collectChars = new StringBuffer();
                     while (i < tokens.length && ((tokens[i] >= '0' && tokens[i] <= '9') || tokens[i] == '+' || tokens[i] == '-')) {
                         collectChars.append(tokens[i++]);
@@ -177,18 +218,37 @@ public class CalculatorOperatons {
         return 0;
     }
 
-    public void memoryOperation(String operand, String operator){
+    public void memoryOperation(String operand, String operator) {
         if (memory == 0 && operator.equals("M+")) {
             memory = Double.parseDouble(operand);
-        } else if (memory == 0 && operator.equals("M-")){
+        } else if (memory == 0 && operator.equals("M-")) {
             memory = -1 * Double.parseDouble(operand);
-        } else if(operator.equals("M+")){
-          memory += Double.parseDouble(operand);
-        } else if (operator.equals("M-")){
+        } else if (operator.equals("M+")) {
+            memory += Double.parseDouble(operand);
+        } else if (operator.equals("M-")) {
             memory -= Double.parseDouble(operand);
-        } else if(operator.equals("clearM")){
+        } else if (operator.equals("clearM")) {
             memory = 0;
         }
+    }
+
+    public double getFactorial(String operand) {
+        long n = Long.parseLong(operand);
+        long result = 1;
+        for (int i = 1; i <= n; i++) {
+            result = result * i;
+        }
+        return result;
+    }
+
+    public void getNcR(long n, long r) {
+        long dif = n - r;
+        total = getFactorial(String.valueOf(n)) / (getFactorial(String.valueOf(r)) * getFactorial(String.valueOf(dif)));
+    }
+
+    public void getNpR(long n, long r) {
+        long dif = n - r;
+        total = getFactorial(String.valueOf(n)) / getFactorial(String.valueOf(dif));
     }
 
 }

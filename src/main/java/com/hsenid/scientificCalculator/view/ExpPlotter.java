@@ -21,24 +21,25 @@ public class ExpPlotter extends JFrame {
 
     class Draw extends JPanel {
         Calculator cal = new Calculator();
+
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
 
-            int q = 0;
-            double r = 0;
+            int x = -250;
+            double y = 0;
             Polygon p = new Polygon();
-                String expression = calc.expression;
-                while (0 <= q && q <= 250) {
-                    r = operatons.evaluate(expression, q);
-                    p.addPoint(q, (int) r);
-                    System.out.println("(" + q + " , " + r + ")");
-                    q++;
-                }
+            String expression = calc.expression;
+            while (-250 <= x && x <= 250) {
+                y = operatons.evaluate(expression, x);
+                p.addPoint(x, (int) y);
+                System.out.println("(" + x + " , " + y + ")");
+                x++;
+            }
             g.setColor(Color.blue);
-            g.drawPolyline(p.xpoints, p.ypoints, 250);
+            g.drawPolyline(p.xpoints, p.ypoints, 501);
             g.setColor(Color.black);
-            g.drawLine(100,50, 500, 50);
-            g.drawLine(100, 10, 100, 500);
+            g.drawLine(0, 100, 500, 100);
+            g.drawLine(200, 0, 200, 500);
 
         }
     }
