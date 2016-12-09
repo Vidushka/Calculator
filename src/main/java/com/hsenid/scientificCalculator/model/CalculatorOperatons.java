@@ -154,7 +154,7 @@ public class CalculatorOperatons {
     }
 
     public double evaluate(String expression, int d) {
-        expression = expression.replaceAll("x", String.valueOf(d));
+        expression = expression.replaceAll("x", "*"+String.valueOf(d));
         char[] tokens = expression.toCharArray();
         Stack<Double> values = new Stack<Double>();
         Stack<Character> ops = new Stack<Character>();

@@ -31,7 +31,7 @@ public class ExpPlotter extends JFrame {
             String expression = calc.expression;
             while (-250 <= x && x <= 250) {
                 y = operatons.evaluate(expression, x);
-                p.addPoint(x, (int) y);
+                p.addPoint(90-x, (int) y + 200);
                 System.out.println("(" + x + " , " + y + ")");
                 x++;
             }
