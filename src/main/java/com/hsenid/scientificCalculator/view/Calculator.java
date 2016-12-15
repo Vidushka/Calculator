@@ -90,7 +90,8 @@ public class Calculator extends JFrame {
     private JButton btnC;
     private JButton viewButton;
     private JButton btnDB;
-    private JTextArea expressions;
+    private JButton btnFile;
+
 
     public Calculator() {
         add(calPanel);
@@ -162,9 +163,11 @@ public class Calculator extends JFrame {
         });
 
 
-        btnE.addActionListener(e -> {
-            calDisplay.setText(calDisplay.getText() + "e");
-            operator = "antiLogE";
+        btnE.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                calDisplay.setText(calDisplay.getText() + "e");
+                operator = "antiLogE";
+            }
         });
 
         btnEqual.addActionListener(new ActionListener() {
@@ -271,6 +274,8 @@ public class Calculator extends JFrame {
                         c = calDisplay.getText();
                         calDisplay.setText(outputDisplay.getText());
                         outputDisplay.setText(String.valueOf(op.getAnswer(outputDisplay.getText(), a, b, c)));
+                    } else if (operator.equals("db")){
+
                     } else {
                         op.doBasicOperations(basicOperator, calDisplay.getText());
                         outputDisplay.setText(String.valueOf(op.total));
@@ -509,12 +514,10 @@ public class Calculator extends JFrame {
                     if (!currentVariable) {
                         a = calDisplay.getText();
                         calDisplay.setText("");
-                        //currentVariable = true;
                     }
                     if (currentVariable) {
                         b = calDisplay.getText();
                         calDisplay.setText("");
-                        //currentVariable = false;
                     }
                     currentVariable = true;
                 }
@@ -529,8 +532,7 @@ public class Calculator extends JFrame {
                 operand = null;
                 leftOperand = null;
                 rightOperand = null;
-                basicOperator = ' ';
-                //operator = null;
+                basicOperator = '0';
                 inputBase = null;
                 exp = false;
             }
@@ -706,6 +708,9 @@ public class Calculator extends JFrame {
                     } else if (saveOption.equals("defaultFile")) {
                         op.saveExpressions(expression);
                         outputDisplay.setText("Saved to defaultFile");
+                    } else if (saveOption.equals("db")){
+                        op.saveToDB(expression);
+                        outputDisplay.setText("Saved to DB");
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();
@@ -714,45 +719,47 @@ public class Calculator extends JFrame {
         });
 
         btnA.addActionListener(new ActionListener() {
-            @Override
             public void actionPerformed(ActionEvent e) {
-                saveOption = "defaultFile";
                 calDisplay.setText(calDisplay.getText() + "a");
             }
         });
 
         btnB.addActionListener(new ActionListener() {
-            @Override
             public void actionPerformed(ActionEvent e) {
-                saveOption = "defaultFile";
                 calDisplay.setText(calDisplay.getText() + "b");
             }
         });
 
         btnC.addActionListener(new ActionListener() {
-            @Override
             public void actionPerformed(ActionEvent e) {
-                saveOption = "defaultFile";
                 calDisplay.setText(calDisplay.getText() + "c");
             }
         });
+
         viewButton.addActionListener(new ActionListener() {
-            @Override
             public void actionPerformed(ActionEvent e) {
-                try {
-                    outputDisplay.setText(op.readDefaultFile(new File("/home/hsenid/Documents/calculator/defaultFile.txt")).substring(3));
-                } catch (IOException e1) {
-                    e1.printStackTrace();
+                if (saveOption.equals("defaultFile")) {
+                    try {
+                        outputDisplay.setText(op.readDefaultFile(new File("D:/hsenid/defaultFile.txt")).substring(3));
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
+                    operator = "defaltFileOperation";
+                } else if (saveOption.equals("db")){
+                    outputDisplay.setText(op.readDB());
                 }
-
-                operator = "defaltFileOperation";
-
             }
         });
         btnDB.addActionListener(new ActionListener() {
-            @Override
             public void actionPerformed(ActionEvent e) {
                 operand = "db";
+                saveOption = "db";
+
+            }
+        });
+        btnFile.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                saveOption = "defaultFile";
             }
         });
     }
