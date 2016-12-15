@@ -1,5 +1,8 @@
 package com.hsenid.scientificCalculator.model;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import javax.swing.*;
 import java.io.*;
 import java.sql.*;
@@ -15,6 +18,8 @@ public class CalculatorOperatons {
     public double total = 0;
     public String val;
     public double memory = 0;
+    static Logger log = LogManager.getLogger(CalculatorOperatons.class.getName());
+
 
     public String convertOperand(String input) {
         Pattern pattern = Pattern.compile("\\d+(\\.\\d*)?+$");
@@ -42,18 +47,18 @@ public class CalculatorOperatons {
         } else {
             opt = convertOperator(operand, operator);
         }
-        operand = convertOperand(operand);
+        String input = convertOperand(operand);
         if (opt == '+') {
-            total += Double.valueOf(operand);
+            total += Double.valueOf(input);
         } else if (opt == '*') {
-            total *= Double.valueOf(operand);
+            total *= Double.valueOf(input);
         } else if (opt == '-') {
-            total -= Double.valueOf(operand);
+            total -= Double.valueOf(input);
         } else if (opt == '/') {
-            if (operand.equals("0")) {
+            if (input.equals("0")) {
                 throw new ArithmeticException("Divid by 0 is undefined");
             }
-            total /= Double.valueOf(operand);
+            total /= Double.valueOf(input);
         }
     }
 
@@ -88,8 +93,8 @@ public class CalculatorOperatons {
     }
 
     public void calculateSqRoot(String operand) {
-        operand = convertOperand(operand);
-        total = Math.sqrt(Double.parseDouble(operand));
+        String input = convertOperand(operand);
+        total = Math.sqrt(Double.parseDouble(input));
     }
 
     public void getPowerTwo(String operand) {
@@ -132,37 +137,45 @@ public class CalculatorOperatons {
     }
 
     public void baseConverter(String operator, String inputBase, String operand) {
-        if (operator.equals("toHex")) {
-            if (inputBase.equals("dec")) {
+        if ("toHex".equals(operator)) {
+            if ("dec".equals(inputBase)) {
                 val = Integer.toHexString(Integer.parseInt(operand, 10));
-            } else if (inputBase.equals("oct")) {
+            } else if ("oct".equals(inputBase)) {
                 val = Integer.toHexString(Integer.parseInt(operand, 8));
-            } else if (inputBase.equals("bin")) {
+            } else if ("bin".equals(inputBase)) {
                 val = Integer.toHexString(Integer.parseInt(operand, 2));
+            } else {
+                throw new NumberFormatException("Invalid Input");
             }
-        } else if (operator.equals("toDec")) {
-            if (inputBase.equals("hex")) {
+        } else if ("toDec".equals(operator)) {
+            if ("hex".equals(inputBase)) {
                 val = String.valueOf(Integer.parseInt(operand, 16));
-            } else if (inputBase.equals("oct")) {
+            } else if ("oct".equals(inputBase)) {
                 val = String.valueOf(Integer.parseInt(operand, 8));
-            } else if (inputBase.equals("bin")) {
+            } else if ("bin".equals(inputBase)) {
                 val = String.valueOf(Integer.parseInt(operand, 2));
+            } else {
+                throw new NumberFormatException("Invalid Input");
             }
-        } else if (operator.equals("toBin")) {
-            if (inputBase.equals("dec")) {
+        } else if ("toBin".equals(operator)) {
+            if ("dec".equals(inputBase)) {
                 val = Integer.toBinaryString(Integer.parseInt(operand, 10));
-            } else if (inputBase.equals("oct")) {
+            } else if ("oct".equals(inputBase)) {
                 val = Integer.toBinaryString(Integer.parseInt(operand, 8));
-            } else if (inputBase.equals("hex")) {
+            } else if ("hex".equals(inputBase)) {
                 val = Integer.toBinaryString(Integer.parseInt(operand, 16));
+            } else {
+                throw new NumberFormatException("Invalid Input");
             }
-        } else if (operator.equals("toOct")) {
-            if (inputBase.equals("hex")) {
+        } else if ("toOct".equals(operator)) {
+            if ("hex".equals(inputBase)) {
                 val = Integer.toOctalString(Integer.parseInt(operand, 16));
-            } else if (inputBase.equals("dec")) {
+            } else if ("dec".equals(inputBase)) {
                 val = Integer.toOctalString(Integer.parseInt(operand, 10));
-            } else if (inputBase.equals("bin")) {
+            } else if ("bin".equals(inputBase)) {
                 val = Integer.toOctalString(Integer.parseInt(operand, 2));
+            } else {
+                throw new NumberFormatException("Invalid Input");
             }
         }
 
@@ -241,15 +254,15 @@ public class CalculatorOperatons {
     }
 
     public void memoryOperation(String operand, String operator) {
-        if (memory == 0 && operator.equals("M+")) {
+        if (memory == 0 && "M+".equals(operator)) {
             memory = Double.parseDouble(operand);
-        } else if (memory == 0 && operator.equals("M-")) {
+        } else if (memory == 0 && "M-".equals(operator)) {
             memory = -1 * Double.parseDouble(operand);
-        } else if (operator.equals("M+")) {
+        } else if ("M+".equals(operator)) {
             memory += Double.parseDouble(operand);
-        } else if (operator.equals("M-")) {
+        } else if ("M-".equals(operator)) {
             memory -= Double.parseDouble(operand);
-        } else if (operator.equals("clearM")) {
+        } else if ("clearM".equals(operator)) {
             memory = 0;
         } else {
             throw new NumberFormatException("Invalid input");
@@ -279,11 +292,12 @@ public class CalculatorOperatons {
     public void saveExpressions(String expression) {
         PrintWriter out = null;
         try {
-            out = new PrintWriter(new FileOutputStream(new File("D:/hsenid/defaultFile.txt"), true));
+            out = new PrintWriter(new FileOutputStream(new File("/home/hsenid/Documents/calculator/defaultFile.txt"), true));
             out.write("y = " + expression);
             out.println();
             out.close();
         } catch (FileNotFoundException e) {
+            log.error("No defaultFile found", e);
             e.printStackTrace();
         }
     }
@@ -326,19 +340,23 @@ public class CalculatorOperatons {
             stmt.close();
             conn.close();
         } catch (SQLException se) {
+            log.error("JDBC connection error", se);
             se.printStackTrace();
         } catch (Exception e) {
+            log.error("error in Class.forName", e);
             e.printStackTrace();
         } finally {
             try {
                 if (stmt != null)
                     stmt.close();
             } catch (SQLException se2) {
+                log.error("Can not close statement", se2);
             }
             try {
                 if (conn != null)
                     conn.close();
             } catch (SQLException se) {
+                log.error("Can't close connection", se);
                 se.printStackTrace();
             }
         }
@@ -370,17 +388,20 @@ public class CalculatorOperatons {
             return JOptionPane.showInputDialog(null, "Saved Expressions", "Select one",
                     JOptionPane.PLAIN_MESSAGE, null, lineArray, lineArray[0]).toString();
         } catch (Exception e) {
+            log.error("JDBC connection error", e);
             e.printStackTrace();
         } finally {
             try {
                 if (stmt != null)
                     stmt.close();
             } catch (SQLException se2) {
+                log.error("Can not close statement", se2);
             }
             try {
                 if (conn != null)
                     conn.close();
             } catch (SQLException se) {
+                log.error("Can't close connect", se);
                 se.printStackTrace();
             }
 
