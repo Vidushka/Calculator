@@ -6,8 +6,8 @@ import javax.swing.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.regex.*;
 
 /**
  * Created by Vidushka on 11/30/16.
@@ -22,6 +22,11 @@ public class Calculator extends JFrame {
     public static String expression;
     boolean exp = false;
     char basicOperator;
+    String saveOption;
+    String a;
+    String b;
+    String c;
+    boolean currentVariable = false;
     CalculatorOperatons op = new CalculatorOperatons();
 
     private JPanel calPanel;
@@ -80,6 +85,13 @@ public class Calculator extends JFrame {
     private JButton btnOctg;
     private JButton btnBin;
     private JButton btnSave;
+    private JButton btnA;
+    private JButton btnB;
+    private JButton btnC;
+    private JButton viewButton;
+    private JButton btnDB;
+    private JButton btnFile;
+
 
     public Calculator() {
         add(calPanel);
@@ -149,11 +161,7 @@ public class Calculator extends JFrame {
                 calDisplay.setText(calDisplay.getText() + ".");
             }
         });
-        btnPresentage.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                calDisplay.setText(calDisplay.getText() + " % ");
-            }
-        });
+
 
         btnE.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -164,55 +172,45 @@ public class Calculator extends JFrame {
 
         btnEqual.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                basicOperator = '=';
                 try {
                     if (operator.equals("Sin")) {
                         operand = calDisplay.getText();
-                        double radians = Math.toRadians(Double.valueOf(op.convertOperand(operand)));
-                        op.calculateSin(radians);
+                        op.calculateSin(operand);
                         outputDisplay.setText(String.valueOf(op.total));
                         history.addItem(operand + " = " + outputDisplay.getText());
                     } else if (operator.equals("Cos")) {
                         operand = calDisplay.getText();
-                        double radians = Math.toRadians(Double.valueOf(op.convertOperand(operand)));
-                        op.calculateCos(radians);
+                        op.calculateCos(operand);
                         outputDisplay.setText(String.valueOf(op.total));
                         history.addItem(operand + " = " + outputDisplay.getText());
                     } else if (operator.equals("Tan")) {
                         operand = calDisplay.getText();
-                        double radians = Math.toRadians(Double.valueOf(op.convertOperand(operand)));
-                        op.calculateTan(radians);
+                        op.calculateTan(operand);
                         outputDisplay.setText(String.valueOf(op.total));
+                        history.addItem(operand + " = " + outputDisplay.getText());
                         history.addItem(operand + " = " + outputDisplay.getText());
                     } else if (operator.equals("Cosec")) {
                         operand = calDisplay.getText();
-                        double radians = Math.toRadians(Double.valueOf(op.convertOperand(operand)));
-                        op.calculateCosec(radians);
+                        op.calculateCosec(operand);
                         outputDisplay.setText(String.valueOf(op.total));
                         history.addItem(operand + " = " + outputDisplay.getText());
                     } else if (operator.equals("Sec")) {
                         operand = calDisplay.getText();
-                        double radians = Math.toRadians(Double.valueOf(op.convertOperand(operand)));
-                        op.calculateSec(radians);
+                        op.calculateSec(operand);
                         outputDisplay.setText(String.valueOf(op.total));
                         history.addItem(operand + " = " + outputDisplay.getText());
                     } else if (operator.equals("Cot")) {
                         operand = calDisplay.getText();
-                        double radians = Math.toRadians(Double.valueOf(op.convertOperand(operand)));
-                        op.calculateCot(radians);
+                        op.calculateCot(operand);
                         outputDisplay.setText(String.valueOf(op.total));
                         history.addItem(operand + " = " + outputDisplay.getText());
                     } else if (operator.equals("sqRoot")) {
                         operand = calDisplay.getText();
-                        op.calculateSqRoot(op.convertOperand(operand));
+                        op.calculateSqRoot(operand);
                         outputDisplay.setText(String.valueOf(op.total));
                         history.addItem(operand + " = " + outputDisplay.getText());
                     } else if (operator.equals("getPowerTwo")) {
                         operand = calDisplay.getText();
-                        Pattern pattern = Pattern.compile("^\\d+(\\.\\d*)?+");
-                        Matcher match = pattern.matcher(operand);
-                        match.find();
-                        operand = match.group();
                         op.getPowerTwo(operand);
                         outputDisplay.setText(String.valueOf(op.total));
                         history.addItem(operand + " = " + outputDisplay.getText());
@@ -258,8 +256,7 @@ public class Calculator extends JFrame {
                         history.addItem(operand + " = " + outputDisplay.getText());
                     } else if (operator.equals("fact")) {
                         operand = calDisplay.getText();
-                        op.getFactorial(op.convertOperand(operand));
-                        outputDisplay.setText(String.valueOf(op.total));
+                        outputDisplay.setText(String.valueOf(op.getFactorial(operand)));
                     } else if (exp) {
                         outputDisplay.setText(String.valueOf(op.evaluate(calDisplay.getText(), 0)));
                         history.addItem(calDisplay.getText() + " = " + outputDisplay.getText());
@@ -273,11 +270,19 @@ public class Calculator extends JFrame {
                         op.getNpR(Long.parseLong(leftOperand), Long.parseLong(rightOperand));
                         outputDisplay.setText(String.valueOf(op.total));
                         history.addItem(calDisplay.getText() + " = " + outputDisplay.getText());
+                    } else if (operator.equals("defaltFileOperation")) {
+                        c = calDisplay.getText();
+                        calDisplay.setText(outputDisplay.getText());
+                        outputDisplay.setText(String.valueOf(op.getAnswer(outputDisplay.getText(), a, b, c)));
+                    } else if (operator.equals("db")){
+
                     } else {
                         op.doBasicOperations(basicOperator, calDisplay.getText());
                         outputDisplay.setText(String.valueOf(op.total));
                         history.addItem(calDisplay.getText() + " = " + outputDisplay.getText());
+                        operand = null;
                     }
+                    basicOperator = '=';
                 } catch (Exception e1) {
                     outputDisplay.setText(e1.getMessage());
                     e1.printStackTrace();
@@ -287,22 +292,26 @@ public class Calculator extends JFrame {
 
         btnDivide.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                basicOperator = '/';
 
                 if (!exp) {
-                    top:
-                    if (op.total == 0) {
+                    if (op.total == 0 && basicOperator != '/') {
                         op.total = Double.valueOf(calDisplay.getText());
                         outputDisplay.setText(calDisplay.getText());
                     } else {
-                        operand = calDisplay.getText();
-                        if (operand.equals("0")) {
-                            //throw new Exception("Divition by 0 is undefined");
-                            outputDisplay.setText("ERROR : Can't divide by 0 !!");
-                            break top;
+                        if (basicOperator == '=') {
+                            operand = String.valueOf(1);
+                        } else {
+                            operand = calDisplay.getText();
                         }
-                        op.doBasicOperations(basicOperator, operand);
-                        outputDisplay.setText(String.valueOf(op.total));
+
+                        basicOperator = '/';
+                        operator = "/";
+                        try {
+                            op.doBasicOperations(basicOperator, operand);
+                            outputDisplay.setText(String.valueOf(op.total));
+                        } catch (Exception e1) {
+                            outputDisplay.setText(e1.getMessage());
+                        }
                     }
                 }
                 calDisplay.setText(calDisplay.getText() + " / ");
@@ -311,14 +320,23 @@ public class Calculator extends JFrame {
 
         btnMultiply.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                basicOperator = '*';
                 if (!exp) {
-                    if (op.total == 0) {
+                    if (op.total == 0 && basicOperator != '*') {
                         op.total = 1;
                     }
-                    operand = calDisplay.getText();
-                    op.doBasicOperations(basicOperator, operand);
-                    outputDisplay.setText(String.valueOf(op.total));
+                    if (basicOperator == '=') {
+                        operand = String.valueOf(1);
+                    } else {
+                        operand = calDisplay.getText();
+                    }
+                    basicOperator = '*';
+                    operator = "*";
+                    try {
+                        op.doBasicOperations(basicOperator, operand);
+                        outputDisplay.setText(String.valueOf(op.total));
+                    } catch (Exception e1) {
+                        outputDisplay.setText(e1.getMessage());
+                    }
                 }
                 calDisplay.setText(calDisplay.getText() + " * ");
             }
@@ -326,15 +344,24 @@ public class Calculator extends JFrame {
 
         btnSubstract.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                basicOperator = '-';
                 if (!exp) {
-                    if (op.total == 0) {
+                    if (op.total == 0 && basicOperator != '-') {
                         op.total = Double.valueOf(calDisplay.getText());
                         outputDisplay.setText(calDisplay.getText());
                     } else {
-                        operand = calDisplay.getText();
-                        op.doBasicOperations(basicOperator, operand);
-                        outputDisplay.setText(String.valueOf(op.total));
+                        if (basicOperator == '=') {
+                            operand = String.valueOf(0);
+                        } else {
+                            operand = calDisplay.getText();
+                        }
+                        basicOperator = '-';
+                        operator = "-";
+                        try {
+                            op.doBasicOperations(basicOperator, operand);
+                            outputDisplay.setText(String.valueOf(op.total));
+                        } catch (Exception e1) {
+                            outputDisplay.setText(e1.getMessage());
+                        }
                     }
                 }
                 calDisplay.setText(calDisplay.getText() + " - ");
@@ -343,11 +370,20 @@ public class Calculator extends JFrame {
 
         btnAdd.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                basicOperator = '+';
                 if (!exp) {
-                    operand = calDisplay.getText();
-                    op.doBasicOperations(basicOperator, operand);
-                    outputDisplay.setText(String.valueOf(op.total));
+                    if (basicOperator == '=') {
+                        operand = String.valueOf(0);
+                    } else {
+                        operand = calDisplay.getText();
+                    }
+                    basicOperator = '+';
+                    operator = "+";
+                    try {
+                        op.doBasicOperations(basicOperator, operand);
+                        outputDisplay.setText(String.valueOf(op.total));
+                    } catch (Exception e1) {
+                        outputDisplay.setText(e1.getMessage());
+                    }
                 }
                 calDisplay.setText(calDisplay.getText() + " + ");
             }
@@ -474,6 +510,17 @@ public class Calculator extends JFrame {
                     base = Double.valueOf(op.convertOperand(calDisplay.getText()));
                     calDisplay.setText("");
                 }
+                if (operator.equals("defaltFileOperation")) {
+                    if (!currentVariable) {
+                        a = calDisplay.getText();
+                        calDisplay.setText("");
+                    }
+                    if (currentVariable) {
+                        b = calDisplay.getText();
+                        calDisplay.setText("");
+                    }
+                    currentVariable = true;
+                }
             }
         });
 
@@ -485,7 +532,7 @@ public class Calculator extends JFrame {
                 operand = null;
                 leftOperand = null;
                 rightOperand = null;
-                operator = null;
+                basicOperator = '0';
                 inputBase = null;
                 exp = false;
             }
@@ -502,13 +549,15 @@ public class Calculator extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 operand = calDisplay.getText();
                 operator = "clearM";
+                basicOperator = 'M';
                 op.memoryOperation(operand, operator);
             }
         });
 
         btnMR.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                outputDisplay.setText(String.valueOf(op.memory));
+                calDisplay.setText(calDisplay.getText() + String.valueOf(op.memory));
+                basicOperator = 'M';
             }
         });
 
@@ -532,7 +581,6 @@ public class Calculator extends JFrame {
 
         btnPlotter.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                //Plotter curve = new Plotter();
                 ExpPlotter curve = new ExpPlotter();
                 curve.generatePlot(curve);
                 expression = calDisplay.getText();
@@ -547,17 +595,41 @@ public class Calculator extends JFrame {
 
         btnMPlus.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                operand = calDisplay.getText();
+                if (basicOperator == '=') {
+                    operand = outputDisplay.getText();
+                } else {
+                    operand = calDisplay.getText();
+                }
                 operator = "M+";
-                op.memoryOperation(operand, operator);
+                basicOperator = 'M';
+                op.total = 0;
+                calDisplay.setText("");
+                outputDisplay.setText("");
+                try {
+                    op.memoryOperation(operand, operator);
+                } catch (Exception e1) {
+                    outputDisplay.setText(e1.getMessage());
+                }
             }
         });
 
         btnMMinus.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                operand = calDisplay.getText();
+                if (basicOperator == '=') {
+                    operand = outputDisplay.getText();
+                } else {
+                    operand = calDisplay.getText();
+                }
                 operator = "M-";
-                op.memoryOperation(operand, operator);
+                basicOperator = 'M';
+                op.total = 0;
+                calDisplay.setText("");
+                outputDisplay.setText("");
+                try {
+                    op.memoryOperation(operand, operator);
+                } catch (Exception e1) {
+                    outputDisplay.setText(e1.getMessage());
+                }
             }
         });
 
@@ -627,27 +699,99 @@ public class Calculator extends JFrame {
 
         btnSave.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                String expression = calDisplay.getText();
                 try {
-                    PrintWriter out = new PrintWriter(new FileOutputStream(new File("/home/hsenid/Documents/calHistory.txt"), true));
-                    out.println(history.getSelectedItem());
-                    out.close();
+                    if (saveOption.equals("history")) {
+                        PrintWriter out = new PrintWriter(new FileOutputStream(new File("/home/hsenid/Documents/calHistory.txt"), true));
+                        out.println(history.getSelectedItem());
+                        out.close();
+                    } else if (saveOption.equals("defaultFile")) {
+                        op.saveExpressions(expression);
+                        outputDisplay.setText("Saved to defaultFile");
+                    } else if (saveOption.equals("db")){
+                        op.saveToDB(expression);
+                        outputDisplay.setText("Saved to DB");
+                    }
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
+            }
+        });
+
+        btnA.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                calDisplay.setText(calDisplay.getText() + "a");
+            }
+        });
+
+        btnB.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                calDisplay.setText(calDisplay.getText() + "b");
+            }
+        });
+
+        btnC.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                calDisplay.setText(calDisplay.getText() + "c");
+            }
+        });
+
+        viewButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (saveOption.equals("defaultFile")) {
+                    try {
+                        outputDisplay.setText(op.readDefaultFile(new File("D:/hsenid/defaultFile.txt")).substring(3));
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
+                    operator = "defaltFileOperation";
+                } else if (saveOption.equals("db")){
+                        outputDisplay.setText(op.readDB());
+                }
+            }
+        });
+        btnDB.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                operand = "db";
+                saveOption = "db";
+
+            }
+        });
+        btnFile.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                saveOption = "defaultFile";
             }
         });
     }
 
     public static void main(String[] args) {
         try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+
+            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                } else {
+                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                }
+            }
+
         } catch (Exception e) {
-            e.printStackTrace();
+
         }
         Calculator window = new Calculator();
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.setVisible(true);
-        window.setSize(750, 375);
+        window.setSize(750, 400);
+
+       /*//String sx = "2 + 50 + 4x";
+        //Pattern pattern = Pattern.compile("\\d+(\\.\\d*)?\\w");
+        String sx = "2 ";
+        Pattern pattern = Pattern.compile("[-+](\\s\\d+(\\.\\d*)?+)?$");
+        Matcher match = pattern.matcher(sx);
+        match.find();
+        String output = match.group();
+        System.out.println(output);*/
     }
 
     private void createUIComponents() {

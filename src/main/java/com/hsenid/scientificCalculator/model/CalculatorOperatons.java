@@ -1,8 +1,9 @@
 package com.hsenid.scientificCalculator.model;
 
 import javax.swing.*;
-import java.io.File;
-import java.io.PrintWriter;
+import java.io.*;
+import java.sql.*;
+import java.util.InputMismatchException;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,20 +24,23 @@ public class CalculatorOperatons {
         return output;
     }
 
-    public char convertOperator(String input) {
+    public char convertOperator(String input, char operator) {
         Pattern pattern = Pattern.compile("[-+*/](\\s\\d+(\\.\\d*)?+)?$");
         Matcher match = pattern.matcher(input);
-        match.find();
-        String output = match.group();
-        return output.charAt(0);
+        if (match.find()) {
+            String output = match.group();
+            return output.charAt(0);
+        } else {
+            throw new IllegalStateException("Incorrect Operation");
+        }
     }
 
     public void doBasicOperations(char operator, String operand) {
         char opt = ' ';
-        if (operand.length() == 1) {
+        if (operand.matches("\\d+(\\.\\d*)?+")) {
             opt = operator;
-        } else if (operand.length() > 1) {
-            opt = convertOperator(operand);
+        } else {
+            opt = convertOperator(operand, operator);
         }
         operand = convertOperand(operand);
         if (opt == '+') {
@@ -46,40 +50,57 @@ public class CalculatorOperatons {
         } else if (opt == '-') {
             total -= Double.valueOf(operand);
         } else if (opt == '/') {
+            if (operand.equals("0")) {
+                throw new ArithmeticException("Divid by 0 is undefined");
+            }
             total /= Double.valueOf(operand);
         }
     }
 
-    public void calculateSin(Double angle) {
-        total = Math.sin(angle);
+    public void calculateSin(String operand) {
+        double radians = Math.toRadians(Double.parseDouble(convertOperand(operand)));
+        total = Math.sin(radians);
     }
 
-    public void calculateCos(Double angel) {
-        total = Math.cos(angel);
+    public void calculateCos(String operand) {
+        double radians = Math.toRadians(Double.parseDouble(convertOperand(operand)));
+        total = Math.cos(radians);
     }
 
-    public void calculateTan(Double angel) {
-        total = Math.tan(angel);
+    public void calculateTan(String operand) {
+        double radians = Math.toRadians(Double.parseDouble(convertOperand(operand)));
+        total = Math.tan(radians);
     }
 
-    public void calculateCosec(Double angel) {
-        total = 1 / Math.sin(angel);
+    public void calculateCosec(String operand) {
+        double radians = Math.toRadians(Double.parseDouble(convertOperand(operand)));
+        total = 1 / Math.sin(radians);
     }
 
-    public void calculateSec(Double angel) {
-        total = 1 / Math.cos(angel);
+    public void calculateSec(String operand) {
+        double radians = Math.toRadians(Double.parseDouble(convertOperand(operand)));
+        total = 1 / Math.cos(radians);
     }
 
-    public void calculateCot(Double angel) {
-        total = 1 / Math.tan(angel);
+    public void calculateCot(String operand) {
+        double radians = Math.toRadians(Double.parseDouble(convertOperand(operand)));
+        total = 1 / Math.tan(radians);
     }
 
     public void calculateSqRoot(String operand) {
+        operand = convertOperand(operand);
         total = Math.sqrt(Double.parseDouble(operand));
     }
 
     public void getPowerTwo(String operand) {
-        total = Math.pow(Double.parseDouble(operand), 2);
+        Pattern pattern = Pattern.compile("^\\d+(\\.\\d*)?+");
+        Matcher match = pattern.matcher(operand);
+        if (match.find()) {
+            operand = match.group();
+            total = Math.pow(Double.parseDouble(operand), 2);
+        } else {
+            throw new InputMismatchException("Invalid Input");
+        }
     }
 
     public void getAnyPower(String leftOperand, String rightOperand) {
@@ -154,6 +175,7 @@ public class CalculatorOperatons {
     }
 
     public double evaluate(String expression, int d) {
+
         expression = expression.replaceAll("x", String.valueOf(d));
         char[] tokens = expression.toCharArray();
         Stack<Double> values = new Stack<Double>();
@@ -229,10 +251,13 @@ public class CalculatorOperatons {
             memory -= Double.parseDouble(operand);
         } else if (operator.equals("clearM")) {
             memory = 0;
+        } else {
+            throw new NumberFormatException("Invalid input");
         }
     }
 
     public double getFactorial(String operand) {
+        operand = convertOperand(operand);
         long n = Long.parseLong(operand);
         long result = 1;
         for (int i = 1; i <= n; i++) {
@@ -251,5 +276,121 @@ public class CalculatorOperatons {
         total = getFactorial(String.valueOf(n)) / getFactorial(String.valueOf(dif));
     }
 
+    public void saveExpressions(String expression) {
+        PrintWriter out = null;
+        try {
+            out = new PrintWriter(new FileOutputStream(new File("D:/hsenid/defaultFile.txt"), true));
+            out.write("y = " + expression);
+            out.println();
+            out.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String readDefaultFile(File file) throws IOException {
+        FileInputStream fis = new FileInputStream(file);
+        BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+        String line = null;
+        String[] lineArray = new String[100];
+        int i = 0;
+
+        while ((line = br.readLine()) != null) {
+            lineArray[i] = line;
+            i++;
+        }
+        br.close();
+        return JOptionPane.showInputDialog(null, "Saved Expressions",
+                "Select one", JOptionPane.PLAIN_MESSAGE, null, lineArray, lineArray[0]).toString();
+    }
+
+    public double getAnswer(String operand, String a, String b, String c) {
+        operand = operand.replace("a", a);
+        operand = operand.replace("b", b);
+        operand = operand.replace("c", c);
+
+        return evaluate(operand, 0);
+    }
+
+    public void saveToDB(String operand) {
+        Connection conn = null;
+        Statement stmt = null;
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            String url = "jdbc:mysql://localhost/Calculator?autoReconnect=true&useSSL=false";
+            conn = DriverManager.getConnection(url, "root", "vidu");
+
+            stmt = conn.createStatement();
+            String sql;
+            sql = "INSERT INTO expressions (exp) VALUES('" + operand + "')";
+            stmt.executeUpdate(sql);
+            stmt.close();
+            conn.close();
+        } catch (SQLException se) {
+            se.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (stmt != null)
+                    stmt.close();
+            } catch (SQLException se2) {
+            }
+            try {
+                if (conn != null)
+                    conn.close();
+            } catch (SQLException se) {
+                se.printStackTrace();
+            }
+        }
+    }
+
+    public String readDB() {
+        Connection conn = null;
+        Statement stmt = null;
+        try {
+            String[] lineArray = new String[100];
+            int i = 0;
+
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            String url = "jdbc:mysql://localhost/Calculator?autoReconnect=true&useSSL=false";
+            conn = DriverManager.getConnection(url, "root", "vidu");
+
+            stmt = conn.createStatement();
+            String sql;
+            sql = "SELECT exp FROM expressions";
+            ResultSet rs;
+            rs = stmt.executeQuery(sql);
+
+            while (rs.next()) {
+                lineArray[i] = rs.getString("exp");
+                i++;
+            }
+
+            rs.close();
+            stmt.close();
+            conn.close();
+            return JOptionPane.showInputDialog(null, "Saved Expressions", "Select one",
+                    JOptionPane.PLAIN_MESSAGE, null, lineArray, lineArray[0]).toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (stmt != null)
+                    stmt.close();
+            } catch (SQLException se2) {
+            }
+            try {
+                if (conn != null)
+                    conn.close();
+            } catch (SQLException se) {
+                se.printStackTrace();
+            }
+
+        }
+        return "no records";
+    }
 }
 

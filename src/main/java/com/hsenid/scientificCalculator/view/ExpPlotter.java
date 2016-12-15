@@ -31,23 +31,22 @@ public class ExpPlotter extends JFrame {
             String expression = calc.expression;
             while (-250 <= x && x <= 250) {
                 y = operatons.evaluate(expression, x);
-                p.addPoint(x, (int) y);
-                System.out.println("(" + x + " , " + y + ")");
+                p.addPoint(150+x, 300 - (int) y);
                 x++;
             }
             g.setColor(Color.blue);
             g.drawPolyline(p.xpoints, p.ypoints, 501);
             g.setColor(Color.black);
-            g.drawLine(0, 100, 500, 100);
-            g.drawLine(200, 0, 200, 500);
+            g.drawLine(0, 150, 600, 150);
+            g.drawLine(300, 0, 300, 300);
 
         }
     }
 
     public void generatePlot(ExpPlotter frame) {
-        frame.setSize(400, 200);
+        frame.setSize(600, 300);
         frame.setTitle("Plotter");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
