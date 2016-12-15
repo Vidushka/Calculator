@@ -317,10 +317,8 @@ public class CalculatorOperatons {
         Statement stmt = null;
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-
             String url = "jdbc:mysql://localhost/Calculator?autoReconnect=true&useSSL=false";
             conn = DriverManager.getConnection(url, "root", "vidu");
-
             stmt = conn.createStatement();
             String sql;
             sql = "INSERT INTO expressions (exp) VALUES('" + operand + "')";
@@ -352,9 +350,7 @@ public class CalculatorOperatons {
         try {
             String[] lineArray = new String[100];
             int i = 0;
-
             Class.forName("com.mysql.cj.jdbc.Driver");
-
             String url = "jdbc:mysql://localhost/Calculator?autoReconnect=true&useSSL=false";
             conn = DriverManager.getConnection(url, "root", "vidu");
 
@@ -368,7 +364,6 @@ public class CalculatorOperatons {
                 lineArray[i] = rs.getString("exp");
                 i++;
             }
-
             rs.close();
             stmt.close();
             conn.close();

@@ -274,7 +274,7 @@ public class Calculator extends JFrame {
                         c = calDisplay.getText();
                         calDisplay.setText(outputDisplay.getText());
                         outputDisplay.setText(String.valueOf(op.getAnswer(outputDisplay.getText(), a, b, c)));
-                    } else if (operator.equals("db")){
+                    } else if (operator.equals("db")) {
 
                     } else {
                         op.doBasicOperations(basicOperator, calDisplay.getText());
@@ -708,7 +708,7 @@ public class Calculator extends JFrame {
                     } else if (saveOption.equals("defaultFile")) {
                         op.saveExpressions(expression);
                         outputDisplay.setText("Saved to defaultFile");
-                    } else if (saveOption.equals("db")){
+                    } else if (saveOption.equals("db")) {
                         op.saveToDB(expression);
                         outputDisplay.setText("Saved to DB");
                     }
@@ -745,7 +745,7 @@ public class Calculator extends JFrame {
                         e1.printStackTrace();
                     }
                     operator = "defaltFileOperation";
-                } else if (saveOption.equals("db")){
+                } else if (saveOption.equals("db")) {
                     outputDisplay.setText(op.readDB());
                 }
             }
@@ -783,15 +783,6 @@ public class Calculator extends JFrame {
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.setVisible(true);
         window.setSize(750, 400);
-
-       /*//String sx = "2 + 50 + 4x";
-        //Pattern pattern = Pattern.compile("\\d+(\\.\\d*)?\\w");
-        String sx = "2 ";
-        Pattern pattern = Pattern.compile("[-+](\\s\\d+(\\.\\d*)?+)?$");
-        Matcher match = pattern.matcher(sx);
-        match.find();
-        String output = match.group();
-        System.out.println(output);*/
     }
 
     private void createUIComponents() {
